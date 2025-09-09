@@ -32,6 +32,11 @@ class FlogCharm(CharmBase):
             self._log_proxy.on.promtail_digest_error,
             self._promtail_error,
         )
+        self.framework.observe(
+            self._log_proxy.on.log_proxy_endpoint_joined,
+            self._log_proxy_endpoint_joined,
+        )
+        
 
         self.framework.observe(self.on.workload_pebble_ready, self._on_workload_pebble_ready)
         self.framework.observe(self.on.config_changed, self._on_config_changed)
@@ -39,6 +44,9 @@ class FlogCharm(CharmBase):
     def _promtail_error(self, event):
         logger.error(event.message)
         self.unit.status = BlockedStatus(event.message)
+    
+    def _log_proxy_endpoint_joined(self, event):
+        self.unit.status = ActiveStatus()
 
     def _on_workload_pebble_ready(self, event):
         """Define and start a workload using the Pebble API.
