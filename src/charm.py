@@ -8,7 +8,7 @@
 
 import logging
 
-from charms.loki_k8s.v1.loki_push_api import LogProxyConsumer
+from charms.loki_k8s.v1.loki_push_api import LogForwarder, LogProxyConsumer
 from ops.charm import CharmBase
 from ops.main import main
 from ops.model import ActiveStatus, BlockedStatus, ModelError, WaitingStatus
@@ -27,6 +27,10 @@ class FlogCharm(CharmBase):
             charm=self,
             logs_scheme={"workload": {"log-files": ["/bin/fake.log"]}},
             insecure_skip_verify=True,
+        )
+        self._log_forwarder = LogForwarder(
+            self,
+            relation_name="log-forwarder"  # optional, defaults to `logging`
         )
         self.framework.observe(
             self._log_proxy.on.promtail_digest_error,
@@ -67,7 +71,7 @@ class FlogCharm(CharmBase):
     def _flog_layer(self) -> Layer:
         """Returns Pebble configuration layer for flog."""
 
-        def command():
+        def log_proxy_command():
             cmd = (
                 "/bin/flog --loop --type log --output /bin/fake.log --overwrite "
                 f"--format {self.model.config['format']} "
@@ -79,6 +83,15 @@ class FlogCharm(CharmBase):
 
             return cmd
 
+        def log_forwarder_command():
+            cmd = (
+                "/bin/flog --loop --type stdout "
+                f"--format {self.model.config['format']} "
+                f"--rate {self.model.config['rate']} "
+            )
+
+            return cmd
+        
         return Layer(
             {
                 "summary": "flog layer",
@@ -86,10 +99,17 @@ class FlogCharm(CharmBase):
                 "services": {
                     "flog": {
                         "override": "replace",
-                        "summary": "flog service",
-                        "command": command(),
+                        "summary": "flog service for LogProxyConsumer",
+                        "command": log_proxy_command(),
+                        "startup": "enabled",
+                    },
+                    "flog-log-forwarder": {
+                        "override": "replace",
+                        "summary": "flog service for LogForwarder",
+                        "command": log_forwarder_command(),
                         "startup": "enabled",
                     }
+                    
                 },
             }
         )
