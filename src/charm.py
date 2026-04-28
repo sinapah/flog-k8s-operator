@@ -29,8 +29,7 @@ class FlogCharm(CharmBase):
             insecure_skip_verify=True,
         )
         self._log_forwarder = LogForwarder(
-            self,
-            relation_name="log-forwarder"  # optional, defaults to `logging`
+            self, relation_name="log-forwarder"  # optional, defaults to `logging`
         )
         self.framework.observe(
             self._log_proxy.on.promtail_digest_error,
@@ -91,7 +90,7 @@ class FlogCharm(CharmBase):
             )
 
             return cmd
-        
+
         return Layer(
             {
                 "summary": "flog layer",
@@ -108,8 +107,7 @@ class FlogCharm(CharmBase):
                         "summary": "flog service for LogForwarder",
                         "command": log_forwarder_command(),
                         "startup": "enabled",
-                    }
-                    
+                    },
                 },
             }
         )
