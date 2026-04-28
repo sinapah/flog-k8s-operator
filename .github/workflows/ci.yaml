@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: python3 -m pip install tox
       - name: Run linters
@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install dependencies
         run: python -m pip install tox
       - name: Run tests
@@ -31,13 +31,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup operator environment
         uses: charmed-kubernetes/actions-operator@main
         with:
           provider: microk8s
           channel: 1.28-strict/stable
-          juju-channel: "3.1/stable"
+          juju-channel: "3.6/stable"
       - name: Run integration tests
         # set a predictable model name, so it can be consumed by charm-logdump-action
         run: tox -e integration -- --model testing
