@@ -1,0 +1,11 @@
+groups:
+  - name: flog-alerts
+    rules:
+      - alert: FlogNotGeneratingLogs
+        expr: |
+          sum(count_over_time({%%juju_topology%%}[5m])) == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Flog has not generated any logs in the last 5 minutes.
